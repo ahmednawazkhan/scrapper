@@ -13,6 +13,8 @@ import { PasswordService } from './password.service';
 import { SignupInput } from './dto/signup.input';
 import { Token } from './models/token.model';
 import { SecurityConfig } from 'src/common/configs/config.interface';
+import { UsersService } from 'src/users/users.service';
+import { LoginInput } from './dto/login.input';
 
 @Injectable()
 export class AuthService {
@@ -20,21 +22,19 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
     private readonly passwordService: PasswordService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    private readonly userService: UsersService,
   ) {}
 
   async createUser(payload: SignupInput): Promise<Token> {
     const hashedPassword = await this.passwordService.hashPassword(
-      payload.password
+      payload.password,
     );
 
     try {
-      const user = await this.prisma.user.create({
-        data: {
-          ...payload,
-          password: hashedPassword,
-          role: 'USER',
-        },
+      const user = await this.userService.createUser({
+        ...payload,
+        password: hashedPassword,
       });
 
       return this.generateTokens({
@@ -51,16 +51,18 @@ export class AuthService {
     }
   }
 
-  async login(email: string, password: string): Promise<Token> {
-    const user = await this.prisma.user.findUnique({ where: { email } });
+  async login(loginInput: LoginInput): Promise<Token> {
+    const user = await this.userService.findByEmail(loginInput.email);
 
     if (!user) {
-      throw new NotFoundException(`No user found for email: ${email}`);
+      throw new NotFoundException(
+        `No user found for email: ${loginInput.email}`,
+      );
     }
 
     const passwordValid = await this.passwordService.validatePassword(
-      password,
-      user.password
+      loginInput.password,
+      user.password,
     );
 
     if (!passwordValid) {

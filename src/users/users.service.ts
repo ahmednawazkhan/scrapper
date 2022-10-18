@@ -3,12 +3,15 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { PasswordService } from 'src/auth/password.service';
 import { ChangePasswordInput } from './dto/change-password.input';
 import { UpdateUserInput } from './dto/update-user.input';
+import { SignupInput } from 'src/auth/dto/signup.input';
+import { UsersRepository } from './users.repository';
 
 @Injectable()
 export class UsersService {
   constructor(
     private prisma: PrismaService,
-    private passwordService: PasswordService
+    private passwordService: PasswordService,
+    private readonly userRepository: UsersRepository,
   ) {}
 
   updateUser(userId: string, newUserData: UpdateUserInput) {
@@ -20,14 +23,18 @@ export class UsersService {
     });
   }
 
+  createUser(signupInput: SignupInput) {
+    return this.userRepository.create(signupInput);
+  }
+
   async changePassword(
     userId: string,
     userPassword: string,
-    changePassword: ChangePasswordInput
+    changePassword: ChangePasswordInput,
   ) {
     const passwordValid = await this.passwordService.validatePassword(
       changePassword.oldPassword,
-      userPassword
+      userPassword,
     );
 
     if (!passwordValid) {
@@ -35,7 +42,7 @@ export class UsersService {
     }
 
     const hashedPassword = await this.passwordService.hashPassword(
-      changePassword.newPassword
+      changePassword.newPassword,
     );
 
     return this.prisma.user.update({
@@ -44,5 +51,9 @@ export class UsersService {
       },
       where: { id: userId },
     });
+  }
+
+  findByEmail(email: string) {
+    return this.userRepository.findByEmail(email);
   }
 }

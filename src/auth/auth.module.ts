@@ -6,6 +6,8 @@ import { PasswordService } from './password.service';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
 import { SecurityConfig } from 'src/common/configs/config.interface';
+import { AuthController } from './auth.controller';
+import { UsersModule } from 'src/users/users.module';
 
 @Module({
   imports: [
@@ -22,7 +24,9 @@ import { SecurityConfig } from 'src/common/configs/config.interface';
       },
       inject: [ConfigService],
     }),
+    UsersModule,
   ],
+  controllers: [AuthController],
   providers: [AuthService, JwtStrategy, PasswordService],
   exports: [],
 })
