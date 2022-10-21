@@ -15,6 +15,7 @@ import { Token } from './models/token.model';
 import { SecurityConfig } from 'src/common/configs/config.interface';
 import { UsersService } from 'src/users/users.service';
 import { LoginInput } from './dto/login.input';
+import { JWTPayload } from './models/JWTPayload';
 
 @Injectable()
 export class AuthService {
@@ -39,6 +40,9 @@ export class AuthService {
 
       return this.generateTokens({
         userId: user.id,
+        firstName: user.firstname,
+        lastName: user.lastname,
+        role: user.role,
       });
     } catch (e) {
       if (
@@ -71,6 +75,9 @@ export class AuthService {
 
     return this.generateTokens({
       userId: user.id,
+      firstName: user.firstname,
+      lastName: user.lastname,
+      role: user.role,
     });
   }
 
@@ -83,18 +90,18 @@ export class AuthService {
     return this.prisma.user.findUnique({ where: { id } });
   }
 
-  generateTokens(payload: { userId: string }): Token {
+  generateTokens(payload: JWTPayload): Token {
     return {
       accessToken: this.generateAccessToken(payload),
       refreshToken: this.generateRefreshToken(payload),
     };
   }
 
-  private generateAccessToken(payload: { userId: string }): string {
+  private generateAccessToken(payload: JWTPayload): string {
     return this.jwtService.sign(payload);
   }
 
-  private generateRefreshToken(payload: { userId: string }): string {
+  private generateRefreshToken(payload: JWTPayload): string {
     const securityConfig = this.configService.get<SecurityConfig>('security');
     return this.jwtService.sign(payload, {
       secret: this.configService.get('JWT_REFRESH_SECRET'),
@@ -104,12 +111,18 @@ export class AuthService {
 
   refreshToken(token: string) {
     try {
-      const { userId } = this.jwtService.verify(token, {
-        secret: this.configService.get('JWT_REFRESH_SECRET'),
-      });
+      const { userId, firstName, lastName, role } = this.jwtService.verify(
+        token,
+        {
+          secret: this.configService.get('JWT_REFRESH_SECRET'),
+        },
+      );
 
       return this.generateTokens({
         userId,
+        firstName,
+        lastName,
+        role,
       });
     } catch (e) {
       throw new UnauthorizedException();
