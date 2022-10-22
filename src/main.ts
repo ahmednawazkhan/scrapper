@@ -9,6 +9,7 @@ import type {
   NestConfig,
   SwaggerConfig,
 } from 'src/common/configs/config.interface';
+import { AppService } from './app.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -45,6 +46,9 @@ async function bootstrap() {
   if (corsConfig.enabled) {
     app.enableCors();
   }
+
+  const appService = app.get(AppService);
+  await appService.getHello();
 
   await app.listen(process.env.PORT || nestConfig.port || 3000);
 }
