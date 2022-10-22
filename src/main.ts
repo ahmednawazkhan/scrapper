@@ -47,9 +47,6 @@ async function bootstrap() {
     app.enableCors();
   }
 
-  const appService = app.get(AppService);
-  await appService.getHello();
-
   await app.listen(process.env.PORT || nestConfig.port || 3000);
 }
 bootstrap();
