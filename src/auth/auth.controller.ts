@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginInput } from './dto/login.input';
 import { SignupInput } from './dto/signup.input';
@@ -18,9 +26,10 @@ export class AuthController {
     return this.authService.login(loginInput);
   }
 
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  me() {
-    return 'me';
+  me(@Request() req) {
+    return req.user;
   }
 }

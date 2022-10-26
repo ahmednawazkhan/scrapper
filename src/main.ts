@@ -9,7 +9,6 @@ import type {
   NestConfig,
   SwaggerConfig,
 } from 'src/common/configs/config.interface';
-import { AppService } from './app.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -36,6 +35,7 @@ async function bootstrap() {
       .setTitle(swaggerConfig.title || 'Nestjs')
       .setDescription(swaggerConfig.description || 'The nestjs API description')
       .setVersion(swaggerConfig.version || '1.0')
+      .addBearerAuth()
       .build();
     const document = SwaggerModule.createDocument(app, options);
 
